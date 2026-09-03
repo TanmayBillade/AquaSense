@@ -1,0 +1,16 @@
+export const API_BASE_URL = 'http://192.168.0.101:5000/api';
+
+export const TDS_THRESHOLDS = {
+  EXCELLENT: 50,
+  GOOD: 150,
+  MODERATE: 250,
+  POOR: 300,
+};
+
+export const QUALITY_RANGES = {
+  EXCELLENT: 'Excellent',
+  GOOD: 'Good',
+  MODERATE: 'Moderate',
+  POOR: 'Poor',
+  UNSAFE: 'Unsafe',
+};

@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "AquaSense",
+    "slug": "aquasense",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.jpg",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A6EBD"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aquasense.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.jpg",
+        "backgroundColor": "#0A6EBD"
+      },
+      "package": "com.aquasense.app"
+    },
+    "web": {
+      "favicon": "./assets/logo.jpg"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
