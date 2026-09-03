@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, List, Avatar, Divider, Badge } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -8,12 +8,27 @@ import { useAlerts } from '../hooks/useAlerts';
 import { useAppTheme } from '../theme';
 
 const MoreMenuScreen = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { unreadCount } = useAlerts();
   const theme = useAppTheme();
   const navigation = useNavigation<any>();
 
   const getInitial = (name: string) => name ? name.charAt(0).toUpperCase() : 'U';
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to log out of AquaSense?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: () => logout && logout() 
+        }
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'left', 'right']}>
@@ -70,12 +85,12 @@ const MoreMenuScreen = () => {
           />
           <Divider />
           <List.Item
-            title="About"
-            description="App info and support"
-            left={props => <List.Icon {...props} icon="information" />}
-            right={props => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}}
+            title="Log Out"
+            description="Sign out of your account"
+            left={props => <List.Icon {...props} icon="logout" color={theme.colors.error} />}
+            onPress={handleLogout}
             style={styles.menuItem}
+            titleStyle={{ color: theme.colors.error, fontWeight: '600' }}
           />
         </View>
 
@@ -84,7 +99,7 @@ const MoreMenuScreen = () => {
             AquaSense v1.0.0
           </Text>
           <Text variant="labelSmall" style={{ color: theme.colors.outline, marginTop: 4 }}>
-            Research Paper Edition
+            IoT RO Water Quality System
           </Text>
         </View>
       </ScrollView>

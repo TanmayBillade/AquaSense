@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Avatar, TextInput, Button, Card } from 'react-native-paper';
+import { Text, Avatar, TextInput, Button, Card, Divider, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppTheme } from '../theme';
@@ -10,9 +10,10 @@ const ProfileScreen = () => {
   const { user, logout, updateProfile } = useAuth();
   const theme = useAppTheme();
 
+  const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || 'User');
-  const [deviceName, setDeviceName] = useState('AquaSense Primary');
-  const [deviceLocation, setDeviceLocation] = useState('Kitchen Sink');
+  const [deviceName, setDeviceName] = useState(user?.device?.name || 'AquaSense Primary');
+  const [deviceLocation, setDeviceLocation] = useState(user?.device?.location || 'Kitchen');
   const [isSaving, setIsSaving] = useState(false);
 
   const getInitial = (nameStr: string) => {
@@ -25,48 +26,79 @@ const ProfileScreen = () => {
       if (updateProfile) {
         await updateProfile({ name });
       }
-      // Simulating API delay
-      setTimeout(() => {
-        setIsSaving(false);
-      }, 500);
+      setIsEditing(false);
     } catch (e) {
       console.error(e);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
       setIsSaving(false);
     }
   };
 
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to log out?",
+      'Logout',
+      'Are you sure you want to log out of AquaSense?',
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: () => logout && logout(), style: "destructive" }
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: () => logout && logout() 
+        }
       ]
     );
   };
-
-  const hasChanges = name !== user?.name;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
+        {/* Header Section */}
         <View style={styles.profileHeader}>
           <Avatar.Text 
-            size={80} 
+            size={76} 
             label={getInitial(name)} 
             style={[styles.avatar, { backgroundColor: theme.colors.primary }]} 
           />
-          <TextInput
-            mode="flat"
-            value={name}
-            onChangeText={setName}
-            style={styles.nameInput}
-            activeUnderlineColor={theme.colors.primary}
-            theme={{ colors: { background: 'transparent' } }}
-          />
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          
+          {isEditing ? (
+            <View style={styles.editRow}>
+              <TextInput
+                mode="outlined"
+                value={name}
+                onChangeText={setName}
+                style={styles.nameInput}
+                dense
+                autoFocus
+              />
+              <IconButton 
+                icon="check" 
+                mode="contained"
+                size={20} 
+                onPress={handleSave} 
+                loading={isSaving}
+              />
+              <IconButton 
+                icon="close" 
+                size={20} 
+                onPress={() => { setName(user?.name || 'User'); setIsEditing(false); }} 
+              />
+            </View>
+          ) : (
+            <View style={styles.nameRow}>
+              <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: theme.colors.onBackground }}>
+                {name}
+              </Text>
+              <IconButton 
+                icon="pencil" 
+                size={18} 
+                onPress={() => setIsEditing(true)} 
+              />
+            </View>
+          )}
+
+          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
             {user?.email || 'user@example.com'}
           </Text>
           <Text variant="labelSmall" style={{ color: theme.colors.outline, marginTop: 4 }}>
@@ -74,56 +106,78 @@ const ProfileScreen = () => {
           </Text>
         </View>
 
-        <Card style={styles.card} mode="outlined">
-          <Card.Title title="Device Information" titleStyle={{ color: theme.colors.primary }} />
+        {/* Device Info Card */}
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated" elevation={1}>
+          <Card.Title 
+            title="Connected Device" 
+            titleVariant="titleMedium"
+            titleStyle={{ fontWeight: 'bold', color: theme.colors.onSurface }}
+            left={(props) => <Avatar.Icon {...props} icon="router-wireless" size={40} style={{ backgroundColor: theme.colors.primaryContainer }} />}
+          />
           <Card.Content>
-            <View style={styles.inputGroup}>
-              <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>Device Name</Text>
-              <TextInput
-                mode="outlined"
-                value={deviceName}
-                onChangeText={setDeviceName}
-                dense
-              />
+            <Divider style={{ marginBottom: 12 }} />
+            
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Device Name</Text>
+              <Text variant="bodyLarge" style={{ fontWeight: '600', color: theme.colors.onSurface }}>{deviceName}</Text>
             </View>
-            <View style={styles.inputGroup}>
-              <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>Location</Text>
-              <TextInput
-                mode="outlined"
-                value={deviceLocation}
-                onChangeText={setDeviceLocation}
-                dense
-              />
+
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Location</Text>
+              <Text variant="bodyLarge" style={{ fontWeight: '600', color: theme.colors.onSurface }}>{deviceLocation}</Text>
             </View>
-            <View style={styles.inputGroup}>
-              <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>Device ID</Text>
-              <TextInput
-                mode="outlined"
-                value="AQS-2026-8921"
-                disabled
-                dense
-              />
+
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Device ID</Text>
+              <Text variant="bodyMedium" style={{ fontFamily: 'monospace', color: theme.colors.primary }}>
+                {user?.device?.deviceId || 'ESP32-001'}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Sampling Rate</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>Every 30 mins</Text>
             </View>
           </Card.Content>
         </Card>
 
-        <View style={styles.actionsContainer}>
+        {/* Account Info Card */}
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated" elevation={1}>
+          <Card.Title 
+            title="Account Information" 
+            titleVariant="titleMedium"
+            titleStyle={{ fontWeight: 'bold', color: theme.colors.onSurface }}
+            left={(props) => <Avatar.Icon {...props} icon="shield-account" size={40} style={{ backgroundColor: theme.colors.secondaryContainer }} />}
+          />
+          <Card.Content>
+            <Divider style={{ marginBottom: 12 }} />
+            
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Email Address</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>{user?.email || 'N/A'}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Role</Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface, textTransform: 'capitalize' }}>
+                {user?.role || 'User'}
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Prominent Logout Button */}
+        <View style={styles.logoutContainer}>
           <Button 
             mode="contained" 
-            onPress={handleSave} 
-            disabled={!hasChanges || isSaving}
-            loading={isSaving}
-            style={styles.actionButton}
-          >
-            Save Changes
-          </Button>
-          <Button 
-            mode="outlined" 
+            icon="logout"
             onPress={handleLogout} 
-            textColor={theme.colors.error}
-            style={[styles.actionButton, styles.logoutButton, { borderColor: theme.colors.error }]}
+            buttonColor={theme.colors.error}
+            textColor="#FFFFFF"
+            style={styles.logoutButton}
+            contentStyle={{ paddingVertical: 6 }}
           >
-            Logout
+            Log Out of AquaSense
           </Button>
         </View>
 
@@ -137,42 +191,50 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: 32,
-    marginTop: 16,
+    marginBottom: 20,
+    marginTop: 8,
   },
   avatar: {
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 20,
   },
   nameInput: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    height: 48,
-    marginBottom: 4,
-    minWidth: 200,
+    flex: 1,
+    maxWidth: 220,
   },
   card: {
-    marginBottom: 24,
-    borderRadius: 12,
-  },
-  inputGroup: {
     marginBottom: 16,
+    borderRadius: 16,
   },
-  actionsContainer: {
-    gap: 12,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
-  actionButton: {
-    paddingVertical: 6,
-    borderRadius: 8,
+  logoutContainer: {
+    marginTop: 8,
+    marginBottom: 24,
   },
   logoutButton: {
-    borderWidth: 1,
-  }
+    borderRadius: 12,
+  },
 });
 
 export default ProfileScreen;
